@@ -1,0 +1,8 @@
+package com.springboot.restservice.datasource
+
+import com.springboot.restservice.model.Bank
+
+interface BankDataSource {
+
+    fun retrieveBanks(): Collection<Bank>
+}
