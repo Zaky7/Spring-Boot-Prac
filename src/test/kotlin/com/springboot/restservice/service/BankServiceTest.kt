@@ -1,7 +1,6 @@
 package com.springboot.restservice.service
 
 import com.springboot.restservice.datasource.BankDataSource
-import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
@@ -15,7 +14,7 @@ internal class BankServiceTest {
     fun `should call its datasource to retrieve banks once`() {
         // when
         bankService.getBanks()
-        
+
         // then
         verify(exactly = 1) { dataSource.retrieveBanks() }
     }
