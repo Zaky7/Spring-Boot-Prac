@@ -5,7 +5,9 @@ plugins {
 	id("io.spring.dependency-management") version "1.0.11.RELEASE"
 	kotlin("jvm") version "1.5.0-RC"
 	kotlin("plugin.spring") version "1.5.0-RC"
+	jacoco
 }
+
 
 group = "com.spring-boot"
 version = "0.0.1-SNAPSHOT"
@@ -33,6 +35,45 @@ tasks.withType<KotlinCompile> {
 	}
 }
 
-tasks.withType<Test> {
+
+// report is always generated after tests run
+tasks.test {
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport, tasks.jacocoTestCoverageVerification)
 }
+
+// Jacoco Settings
+jacoco {
+	toolVersion = "0.8.2"
+}
+
+// tests are required to run before generating the report
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+}
+
+// TODO Automatically skipped for now
+tasks.jacocoTestCoverageVerification {
+	dependsOn(tasks.jacocoTestReport)
+	violationRules {
+		rule {
+			limit {
+				minimum = "0.9".toBigDecimal()
+			}
+		}
+
+		rule {
+			enabled = false
+			element = "CLASS"
+			includes = listOf("org.gradle.*")
+
+			limit {
+				counter = "LINE"
+				value = "TOTALCOUNT"
+				maximum = "0.3".toBigDecimal()
+			}
+		}
+	}
+}
+
+
