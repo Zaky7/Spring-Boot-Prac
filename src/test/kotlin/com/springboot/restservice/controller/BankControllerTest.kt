@@ -1,5 +1,7 @@
 package com.springboot.restservice.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.springboot.restservice.model.Bank
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -11,13 +13,14 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
+import org.springframework.test.web.servlet.post
 
 @SpringBootTest
 @AutoConfigureMockMvc
-internal class BankControllerTest {
-
-    @Autowired
-    lateinit var mockMvc: MockMvc
+internal class BankControllerTest @Autowired constructor(
+    val mockMvc: MockMvc,
+    val objectMapper: ObjectMapper
+) {
 
     private val baseUrl = "/api/banks"
 
@@ -80,5 +83,54 @@ internal class BankControllerTest {
         }
     }
 
+    @Nested
+    @DisplayName("addBank")
+    @TestInstance(Lifecycle.PER_CLASS)
+    inner class PostNewBank {
+
+        @Test
+        fun `should create a new account`() {
+            // given
+            val newBank = Bank("acc123", 31.45, 2)
+
+            // when
+            val response = mockMvc.post(baseUrl) {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(newBank)
+            }
+
+            // then
+            response
+                .andDo { print() }
+                .andExpect {
+                    status { isCreated() }
+                    content { contentType(MediaType.APPLICATION_JSON) }
+                    jsonPath("$.accountNumber") { value("acc123")}
+                    jsonPath("$.trust") { value(31.45 )}
+                    jsonPath("$.transactionFee") { value(2) }
+                }
+        }
+        
+        @Test
+        fun `should return bad request when account already present`() {
+            // given
+            val duplicateBank = Bank("acc123", 31.45, 2)
+
+
+            // when
+            val response = mockMvc.post(baseUrl) {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(duplicateBank)
+            }
+
+            // then
+            response
+                .andDo { print() }
+                .andExpect {
+                    status { isBadRequest() }
+                }
+            
+        }
+    }
 
 }
